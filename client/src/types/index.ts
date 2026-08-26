@@ -1,4 +1,4 @@
-// ─── Auth ───────────────────────────────────────────────────────────────────
+﻿// â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface IUser {
   _id: string;
   name: string;
@@ -22,7 +22,7 @@ export interface AuthResponse {
   tokens: AuthTokens;
 }
 
-// ─── Vehicle ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Vehicle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface IVehicle {
   _id: string;
   owner: string;
@@ -37,7 +37,7 @@ export interface IVehicle {
   createdAt: string;
 }
 
-// ─── Parking ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Parking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface IParkingLot {
   _id: string;
   owner: string;
@@ -65,7 +65,10 @@ export interface IParkingLot {
   amenities: string[];
   images: string[];
   status: 'pending' | 'active' | 'inactive' | 'suspended';
-  rating?: {
+    verificationStatus?: VerificationStatus;
+  verificationLevel?: VerificationLevel;
+  isDuplicateFlagged?: boolean;
+rating?: {
     average: number;
     count: number;
   };
@@ -73,7 +76,7 @@ export interface IParkingLot {
   createdAt: string;
 }
 
-// ─── Slot ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Slot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface ISlot {
   _id: string;
   parkingLot: string;
@@ -85,7 +88,7 @@ export interface ISlot {
   createdAt: string;
 }
 
-// ─── Booking ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Booking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface IBooking {
   _id: string;
   bookingRef: string;
@@ -135,7 +138,7 @@ export interface IBooking {
   createdAt: string;
 }
 
-// ─── Notification ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Notification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface INotification {
   _id: string;
   type: string;
@@ -152,7 +155,7 @@ export interface INotification {
   createdAt: string;
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface PaginatedResult<T> {
   data: T[];
   pagination: {
@@ -172,7 +175,7 @@ export interface ApiResponse<T> {
   requestId?: string;
 }
 
-// ─── Search ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface SearchParams {
   lat?: number;
   lng?: number;
@@ -183,3 +186,86 @@ export interface SearchParams {
   page?: number;
   limit?: number;
 }
+
+// "?"?"? Phase 3 - Verification "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+export type VerificationStatus = 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'MORE_INFO_REQUIRED' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED';
+export type VerificationType = 'PROPERTY_OWNER' | 'LEASE_HOLDER' | 'AUTHORIZED_OPERATOR' | 'BUSINESS_OPERATOR' | 'PROPERTY_MANAGER' | 'OTHER';
+export type VerificationLevel = 'PARKIQ_VERIFIED' | 'VERIFIED_OWNER' | 'VERIFIED_OPERATOR' | 'LOCATION_VERIFIED' | 'BASIC_VERIFIED';
+
+export interface IDuplicateWarning {
+  lotId: string;
+  distanceMeters: number;
+  flaggedAt: string;
+}
+
+export interface IParkingVerification {
+  _id: string;
+  parkingId: string | IParkingLot;
+  ownerId: string | IUser;
+  verificationType: VerificationType;
+  status: VerificationStatus;
+  verificationLevel?: VerificationLevel;
+  evidenceRefs?: Array<{
+    evidenceType: string;
+    description: string;
+    fileKey: string;
+    mimeType: string;
+    uploadedAt: string;
+  }>;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: string | IUser;
+  reviewReason?: string;
+  adminNotes?: string;
+  duplicateWarnings: IDuplicateWarning[];
+  previousAttempts: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// "?"?"? Phase 3 - Claims "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+export type ClaimStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+
+export interface IClaimRequest {
+  _id: string;
+  parkingId: string | IParkingLot;
+  claimantId: string | IUser;
+  status: ClaimStatus;
+  claimReason: string;
+  evidenceRefs?: Array<any>;
+  reviewedBy?: string | IUser;
+  reviewReason?: string;
+  conflictsWith?: string | IUser;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// "?"?"? Phase 3 - Reports "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+export type ReportReason = 'DOESNT_EXIST' | 'WRONG_LOCATION' | 'FAKE_LISTING' | 'UNAUTHORIZED' | 'WRONG_AVAILABILITY' | 'FRAUD_PAYMENT' | 'SAFETY_CONCERN' | 'OTHER';
+export type ReportStatus = 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'DISMISSED';
+
+export interface IParkingReport {
+  _id: string;
+  parkingId: string | IParkingLot;
+  reportedBy: string | IUser;
+  reason: ReportReason;
+  description?: string;
+  status: ReportStatus;
+  resolution?: string;
+  resolvedBy?: string | IUser;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// "?"?"? Phase 3 - Audit "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+export interface IAuditLog {
+  _id: string;
+  actorId: string | IUser;
+  action: string;
+  entityType: string;
+  entityId: string;
+  reason?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+

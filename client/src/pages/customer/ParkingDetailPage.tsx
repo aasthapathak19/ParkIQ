@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -20,8 +20,8 @@ import { useSocket } from '@/contexts/SocketContext';
 import { useEffect } from 'react';
 
 const amenityIcon: Record<string, string> = {
-  cctv: '📷', covered: '🏠', ev_charging: '⚡', handicapped: '♿',
-  '24x7': '🕐', valet: '👨‍✈️', washroom: '🚻', security: '👮',
+  cctv: 'ðŸ“·', covered: 'ðŸ ', ev_charging: 'âš¡', handicapped: 'â™¿',
+  '24x7': 'ðŸ•', valet: 'ðŸ‘¨â€âœˆï¸', washroom: 'ðŸš»', security: 'ðŸ‘®',
 };
 
 const ParkingDetailPage: React.FC = () => {
@@ -169,8 +169,8 @@ const ParkingDetailPage: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { icon: <Car className="w-5 h-5 text-emerald-400" />, label: 'Available', value: `${lot.capacity.available}/${lot.capacity.total}` },
-            { icon: <IndianRupee className="w-5 h-5 text-indigo-400" />, label: 'Base Rate', value: `₹${lot.pricing.baseRate}/${lot.pricing.billingUnit}` },
-            { icon: <Clock className="w-5 h-5 text-amber-400" />, label: 'Open', value: '24 × 7' },
+            { icon: <IndianRupee className="w-5 h-5 text-indigo-400" />, label: 'Base Rate', value: `â‚¹${lot.pricing.baseRate}/${lot.pricing.billingUnit}` },
+            { icon: <Clock className="w-5 h-5 text-amber-400" />, label: 'Open', value: '24 Ã— 7' },
             { icon: <Shield className="w-5 h-5 text-purple-400" />, label: 'Security', value: 'CCTV' },
           ].map((stat) => (
             <div key={stat.label} className="glass rounded-xl p-4 border border-white/5 text-center">
@@ -189,7 +189,7 @@ const ParkingDetailPage: React.FC = () => {
               {lot.amenities.map((a) => (
                 <span key={a} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
                   style={{ background: 'rgba(255,255,255,0.06)', color: '#e5e7eb' }}>
-                  {amenityIcon[a] ?? '✓'} {a}
+                  {amenityIcon[a] ?? 'âœ“'} {a}
                 </span>
               ))}
             </div>
@@ -230,16 +230,16 @@ const ParkingDetailPage: React.FC = () => {
         <Modal open={showBookModal} onClose={() => setShowBookModal(false)} title="Book a Slot" size="lg">
           <div className="space-y-4">
             {!selectedSlot ? (
-              <p className="text-sm text-amber-400">⚠️ Please select an available slot from the slot map above first, then click Book Now.</p>
+              <p className="text-sm text-amber-400">âš ï¸ Please select an available slot from the slot map above first, then click Book Now.</p>
             ) : (
-              <p className="text-sm text-emerald-400">✅ Selected: Slot {selectedSlot.slotNumber} (Floor {selectedSlot.floor})</p>
+              <p className="text-sm text-emerald-400">âœ… Selected: Slot {selectedSlot.slotNumber} (Floor {selectedSlot.floor})</p>
             )}
 
             <Select
               label="Vehicle"
               options={[
                 { value: '', label: 'Select your vehicle' },
-                ...vehicles.map((v) => ({ value: v._id, label: `${v.brand} ${v.model} · ${v.licensePlate}` })),
+                ...vehicles.map((v) => ({ value: v._id, label: `${v.brand} ${v.model} Â· ${v.licensePlate}` })),
               ]}
               value={selectedVehicle}
               onChange={(e) => setSelectedVehicle(e.target.value)}
@@ -265,7 +265,7 @@ const ParkingDetailPage: React.FC = () => {
             {priceEstimate?.total && (
               <div className="rounded-lg p-3 flex items-center justify-between" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <span className="text-sm text-neutral-300">Estimated Total</span>
-                <span className="font-bold text-emerald-400 text-lg">₹{priceEstimate.total}</span>
+                <span className="font-bold text-emerald-400 text-lg">â‚¹{priceEstimate.total}</span>
               </div>
             )}
 
@@ -288,3 +288,4 @@ const ParkingDetailPage: React.FC = () => {
 };
 
 export default ParkingDetailPage;
+

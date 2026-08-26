@@ -1,4 +1,4 @@
-import Stripe from 'stripe';
+﻿import Stripe from 'stripe';
 import { IPaymentProvider, PaymentIntentResult } from '../../domain/interfaces/IPaymentProvider';
 import { env } from '../../config/env';
 import { logger } from '../../config/logger';
@@ -8,7 +8,7 @@ export class StripeAdapter implements IPaymentProvider {
 
   constructor() {
     this.stripe = new Stripe(env.STRIPE_SECRET_KEY ?? '', {
-      apiVersion: '2025-01-27.acacia',
+      apiVersion: '2026-07-29.dahlia' as Stripe.LatestApiVersion,
     });
   }
 
@@ -63,3 +63,4 @@ export class StripeAdapter implements IPaymentProvider {
     }
   }
 }
+

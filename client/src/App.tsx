@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+﻿import React, { Suspense, lazy } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Spinner } from '@/components/ui/index';
 
-// ─── Lazy loaded pages ────────────────────────────────────────────────────────
+// â”€â”€â”€ Lazy loaded pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const HomePage = lazy(() => import('@/pages/customer/HomePage'));
 const SearchPage = lazy(() => import('@/pages/customer/SearchPage'));
 const ParkingDetailPage = lazy(() => import('@/pages/customer/ParkingDetailPage'));
@@ -31,7 +31,7 @@ const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
 
-// ─── Query Client ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Query Client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -42,7 +42,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// ─── Page Loader ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="flex flex-col items-center gap-3">
@@ -62,7 +62,7 @@ const GlobalSocketListener = () => {
   return null;
 };
 
-// ─── App ──────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ App â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function App() {
   return (
     <ErrorBoundary>
@@ -72,7 +72,7 @@ function App() {
           <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* ── Public ── */}
+              {/* â”€â”€ Public â”€â”€ */}
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -80,7 +80,7 @@ function App() {
               <Route path="/parking/:id" element={<ParkingDetailPage />} />
               <Route path="/search" element={<SearchPage />} />
 
-              {/* ── Customer ── */}
+              {/* â”€â”€ Customer â”€â”€ */}
               <Route path="/bookings" element={<ProtectedRoute roles={['customer']}><BookingHistoryPage /></ProtectedRoute>} />
               <Route path="/bookings/:id" element={<ProtectedRoute roles={['customer']}><BookingDetailPage /></ProtectedRoute>} />
               <Route path="/vehicles" element={<ProtectedRoute roles={['customer']}><VehiclesPage /></ProtectedRoute>} />
@@ -88,20 +88,20 @@ function App() {
               <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
-              {/* ── Owner ── */}
+              {/* â”€â”€ Owner â”€â”€ */}
               <Route path="/owner/dashboard" element={<ProtectedRoute roles={['owner']}><OwnerDashboardPage /></ProtectedRoute>} />
               <Route path="/owner/lots" element={<ProtectedRoute roles={['owner']}><ParkingManagePage /></ProtectedRoute>} />
               <Route path="/owner/bookings" element={<ProtectedRoute roles={['owner']}><OwnerBookingsPage /></ProtectedRoute>} />
               <Route path="/owner/slots" element={<ProtectedRoute roles={['owner']}><OwnerBookingsPage /></ProtectedRoute>} />
               <Route path="/owner/revenue" element={<ProtectedRoute roles={['owner']}><RevenuePage /></ProtectedRoute>} />
 
-              {/* ── Admin ── */}
+              {/* â”€â”€ Admin â”€â”€ */}
               <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboardPage /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsersPage /></ProtectedRoute>} />
               <Route path="/admin/approvals" element={<ProtectedRoute roles={['admin']}><ApprovalsPage /></ProtectedRoute>} />
               <Route path="/admin/analytics" element={<ProtectedRoute roles={['admin']}><AdminAnalyticsPage /></ProtectedRoute>} />
 
-              {/* ── 404 Fallback ── */}
+              {/* â”€â”€ 404 Fallback â”€â”€ */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
@@ -115,3 +115,4 @@ function App() {
 }
 
 export default App;
+

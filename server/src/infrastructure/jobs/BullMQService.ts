@@ -1,4 +1,4 @@
-import { Queue } from 'bullmq';
+﻿import { Queue } from 'bullmq';
 import { IJobQueueService, JobOpts } from '../../domain/interfaces/IJobQueueService';
 import { redisClient } from '../redis/RedisClient';
 import { logger } from '../../config/logger';
@@ -8,7 +8,7 @@ export class BullMQService implements IJobQueueService {
 
   private getQueue(queueName: string): Queue {
     if (!this.queues.has(queueName)) {
-      const q = new Queue(queueName, { connection: redisClient as any });
+      const q = new Queue(queueName, { connection: { host: process.env.REDIS_URI ? new URL(process.env.REDIS_URI).hostname : '127.0.0.1', port: process.env.REDIS_URI ? parseInt(new URL(process.env.REDIS_URI).port) : 6379 } });
       this.queues.set(queueName, q);
     }
     return this.queues.get(queueName)!;
@@ -27,3 +27,4 @@ export class BullMQService implements IJobQueueService {
 }
 
 export const bullMQService = new BullMQService();
+

@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+﻿import express, { Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -15,7 +15,7 @@ import healthRoutes from './routes/health.routes';
 
 const app: Application = express();
 
-// ─── Security Middlewares ─────────────────────────────────────────────────────
+// â”€â”€â”€ Security Middlewares â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -35,7 +35,7 @@ app.use(
 import { RedisStore } from 'rate-limit-redis';
 import { redisClient } from './infrastructure/redis/RedisClient';
 
-// ─── Rate Limiting ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Rate Limiting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(
   rateLimit({
     windowMs: env.RATE_LIMIT_WINDOW_MS,
@@ -43,7 +43,7 @@ app.use(
     standardHeaders: true,
     legacyHeaders: false,
     store: new RedisStore({
-      sendCommand: (...args: string[]) => redisClient.call(...args),
+      sendCommand: (...args: string[]) => redisClient.call(args[0], ...args.slice(1)) as any,
     }),
     message: { success: false, message: 'Too many requests, please try again later.' },
   }),
@@ -51,26 +51,26 @@ app.use(
 
 import webhookRoutes from './modules/webhooks/webhook.routes';
 
-// ─── Webhooks (Must be before body parsers) ──────────────────────────────────
+// â”€â”€â”€ Webhooks (Must be before body parsers) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use('/api/v1/webhooks', webhookRoutes);
 
-// ─── Request Parsing & Sanitization ──────────────────────────────────────────
+// â”€â”€â”€ Request Parsing & Sanitization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(mongoSanitize()); // Prevents NoSQL injection
 app.set('trust proxy', 1); // Required for accurate req.ip behind reverse proxy
 
-// ─── Request Tracing ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Request Tracing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(requestId);
 
 import pinoHttp from 'pino-http';
 
-// ─── HTTP Logging ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ HTTP Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (env.NODE_ENV !== 'test') {
   app.use(
     pinoHttp({
-      logger,
-      genReqId: (req) => req.requestId,
+      logger: logger as any,
+      genReqId: (req) => (req as any).requestId,
       customLogLevel: (req, res, err) => {
         if (res.statusCode >= 500 || err) return 'error';
         if (res.statusCode >= 400) return 'warn';
@@ -80,20 +80,24 @@ if (env.NODE_ENV !== 'test') {
   );
 }
 
-// ─── Health Probes (before rate limiting in production) ───────────────────────
+// â”€â”€â”€ Health Probes (before rate limiting in production) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use('/', healthRoutes);
 
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 
-// ─── API Documentation ────────────────────────────────────────────────────────
+// â”€â”€â”€ API Documentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(`/api/${env.API_VERSION}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ API Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use('/', apiRoutes);
 
-// ─── Error Handling ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Error Handling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(notFound);
 app.use(errorMiddleware);
 
 export default app;
+
+
+
+

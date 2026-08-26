@@ -1,4 +1,4 @@
-import { Worker, Job } from 'bullmq';
+﻿import { Worker, Job } from 'bullmq';
 import { redisClient } from '../../redis/RedisClient';
 import { analyticsService } from '../../../modules/analytics/analytics.service';
 import { logger } from '../../../config/logger';
@@ -21,7 +21,7 @@ export const analyticsWorker = new Worker(
       await redisClient.set(`analytics:owner:${ownerId}`, JSON.stringify(stats), 'EX', 60 * 60);
     }
   },
-  { connection: redisClient as any }
+  { connection: { host: process.env.REDIS_URI ? new URL(process.env.REDIS_URI).hostname : '127.0.0.1', port: process.env.REDIS_URI ? parseInt(new URL(process.env.REDIS_URI).port) : 6379 } }
 );
 
 analyticsWorker.on('completed', (job) => {
@@ -31,3 +31,4 @@ analyticsWorker.on('completed', (job) => {
 analyticsWorker.on('failed', (job, err) => {
   logger.error({ jobId: job?.id, error: err }, 'Analytics job failed');
 });
+

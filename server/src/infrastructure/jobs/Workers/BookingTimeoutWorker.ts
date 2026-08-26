@@ -1,4 +1,4 @@
-import { Worker, Job } from 'bullmq';
+﻿import { Worker, Job } from 'bullmq';
 import { redisClient } from '../../redis/RedisClient';
 import { BookingModel } from '../../../modules/bookings/booking.model';
 import { slotRepository } from '../../../modules/slots/slot.repository';
@@ -39,7 +39,7 @@ export const bookingWorker = new Worker(
       }
     }
   },
-  { connection: redisClient as any }
+  { connection: { host: process.env.REDIS_URI ? new URL(process.env.REDIS_URI).hostname : '127.0.0.1', port: process.env.REDIS_URI ? parseInt(new URL(process.env.REDIS_URI).port) : 6379 } }
 );
 
 bookingWorker.on('completed', (job) => {
@@ -49,3 +49,4 @@ bookingWorker.on('completed', (job) => {
 bookingWorker.on('failed', (job, err) => {
   logger.error({ jobId: job?.id, error: err }, 'Job failed');
 });
+

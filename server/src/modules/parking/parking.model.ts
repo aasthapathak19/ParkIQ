@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+﻿import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IParkingLot {
   _id: mongoose.Types.ObjectId;
@@ -53,6 +53,12 @@ export interface IParkingLot {
   }>;
   status: 'draft' | 'pending' | 'active' | 'inactive' | 'suspended' | 'rejected';
   rejectionReason?: string;
+  /** Phase 3 — Verification lifecycle status (separate from operational status) */
+  verificationStatus: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'MORE_INFO_REQUIRED' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED';
+  /** Phase 3 — The badge/level earned from verification */
+  verificationLevel?: 'PARKIQ_VERIFIED' | 'VERIFIED_OWNER' | 'VERIFIED_OPERATOR' | 'LOCATION_VERIFIED' | 'BASIC_VERIFIED';
+  /** Phase 3 — Flagged when nearby duplicate listing detected */
+  isDuplicateFlagged: boolean;
   approvedBy?: mongoose.Types.ObjectId;
   approvedAt?: Date;
   rating: { average: number; count: number };
@@ -131,6 +137,18 @@ const ParkingLotSchema = new Schema<IParkingLot>(
       default: 'pending',
     },
     rejectionReason: String,
+    // Phase 3 — Verification Fields
+    verificationStatus: {
+      type: String,
+      enum: ['DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'MORE_INFO_REQUIRED', 'VERIFIED', 'REJECTED', 'SUSPENDED'],
+      default: 'DRAFT',
+      index: true,
+    },
+    verificationLevel: {
+      type: String,
+      enum: ['PARKIQ_VERIFIED', 'VERIFIED_OWNER', 'VERIFIED_OPERATOR', 'LOCATION_VERIFIED', 'BASIC_VERIFIED'],
+    },
+    isDuplicateFlagged: { type: Boolean, default: false, index: true },
     approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     approvedAt: Date,
     rating: {
@@ -152,14 +170,15 @@ const ParkingLotSchema = new Schema<IParkingLot>(
   { timestamps: true },
 );
 
-// ─── Indexes ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Indexes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ParkingLotSchema.index({ location: '2dsphere' });
 ParkingLotSchema.index({ status: 1, 'address.city': 1 });
 ParkingLotSchema.index({ status: 1, 'amenities.isEVCharging': 1 });
 ParkingLotSchema.index({ status: 1, 'pricing.baseRate': 1 });
 ParkingLotSchema.index({ status: 1, 'capacity.available': 1 });
 ParkingLotSchema.index({ 'rating.average': -1, status: 1 });
-ParkingLotSchema.index({ slug: 1 }, { unique: true, sparse: true });
 ParkingLotSchema.index({ deletedAt: 1 }, { sparse: true });
 
 export const ParkingLotModel = mongoose.model<IParkingLot>('ParkingLot', ParkingLotSchema);
+
+

@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import { ILockService } from '../../domain/interfaces/ILockService';
 import { redisClient } from './RedisClient';
 
@@ -8,7 +8,7 @@ export class RedisLockService implements ILockService {
     const lockKey = `lock:${resource}`;
 
     // Set NX (Not eXists) and EX (expire in seconds)
-    const result = await redisClient.set(lockKey, lockId, 'NX', 'EX', ttlSeconds);
+    const result = await redisClient.set(lockKey, lockId, 'EX', ttlSeconds, 'NX');
 
     if (result === 'OK') {
       return lockId;
@@ -32,3 +32,4 @@ export class RedisLockService implements ILockService {
     await redisClient.eval(script, 1, lockKey, lockId);
   }
 }
+

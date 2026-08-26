@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { parkingController } from './parking.controller';
 import { authenticate } from '../../middlewares/auth.middleware';
 import { authorize } from '../../middlewares/rbac.middleware';
@@ -25,4 +25,11 @@ router.put('/:id/status', authenticate, authorize('admin'), parkingController.up
 // Customer routes
 router.post('/:id/favourite', authenticate, authorize('customer'), parkingController.toggleFavourite);
 
+// Phase 3 — Claim an existing parking (authenticated users)
+router.post('/:id/report', authenticate, authorize('customer', 'owner'), async (req, res, next) => {
+  req.params.parkingId = req.params.id;
+  next();
+}, require('../reports/report.controller').reportController.create);
+
 export default router;
+

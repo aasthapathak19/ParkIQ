@@ -1,7 +1,12 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 import dotenv from 'dotenv';
 
-dotenv.config();
+import fs from 'fs';
+if (fs.existsSync('.env.development') && process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: '.env.development' });
+} else {
+  dotenv.config();
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'staging', 'production', 'test']).default('development'),
@@ -48,10 +53,11 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Invalid environment variables:');
+  console.error('âŒ Invalid environment variables:');
   console.error(parsed.error.flatten().fieldErrors);
   process.exit(1);
 }
 
 export const env = parsed.data;
 export type Env = typeof env;
+

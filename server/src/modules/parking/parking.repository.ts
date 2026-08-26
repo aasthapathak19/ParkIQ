@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import { ParkingLotModel, IParkingLot } from './parking.model';
 import { PaginationOptions } from '../../types/common.types';
 
@@ -39,12 +39,11 @@ export class ParkingRepository {
   ): Promise<{ data: IParkingLot[]; total: number }> {
     const query: Record<string, unknown> = { status: 'active', deletedAt: null };
 
-    // Geospatial search
     if (filter.lat !== undefined && filter.lng !== undefined) {
       query.location = {
         $near: {
           $geometry: { type: 'Point', coordinates: [filter.lng, filter.lat] },
-          $maxDistance: (filter.radiusKm ?? 10) * 1000, // Convert km → meters
+          $maxDistance: (filter.radiusKm ?? 10) * 1000,
         },
       };
     }
@@ -143,6 +142,31 @@ export class ParkingRepository {
       ParkingLotModel.countDocuments(query),
     ]);
     return { data, total };
+  }
+
+  // Phase 3 — Geospatial duplicate detection
+  async findNearby(
+    lng: number,
+    lat: number,
+    radiusMeters: number,
+    excludeId?: string,
+  ): Promise<IParkingLot[]> {
+    const query: Record<string, unknown> = {
+      deletedAt: null,
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [lng, lat] },
+          $maxDistance: radiusMeters,
+        },
+      },
+    };
+    if (excludeId) {
+      query._id = { $ne: new mongoose.Types.ObjectId(excludeId) };
+    }
+    return ParkingLotModel.find(query)
+      .select('_id name address location status verificationStatus')
+      .limit(10)
+      .lean();
   }
 }
 

@@ -1,25 +1,39 @@
-import { parkingRepository, ParkingSearchFilter } from './parking.repository';
+﻿import { parkingRepository, ParkingSearchFilter } from './parking.repository';
 import { IParkingLot } from './parking.model';
 import { userRepository } from '../users/user.repository';
 import { NotFoundError, ForbiddenError, ConflictError } from '../../domain/errors';
 import { PaginationOptions, PaginatedResult } from '../../types/common.types';
 import { buildPaginatedResult } from '../../utils/pagination.utils';
+import { verificationService } from '../verification/verification.service';
+import { VerificationType } from '../verification/verification.model';
+import { logger } from '../../config/logger';
 
 const slugify = (text: string): string =>
   text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 export class ParkingService {
-  async createLot(ownerId: string, dto: Partial<IParkingLot>): Promise<IParkingLot> {
+  async createLot(ownerId: string, dto: Partial<IParkingLot> & { verificationType?: VerificationType }): Promise<IParkingLot> {
     const baseSlug = slugify(dto.name!);
     const slug = `${baseSlug}-${Date.now()}`;
+    const verificationType: VerificationType = dto.verificationType ?? 'PROPERTY_OWNER';
 
-    return parkingRepository.create({
+    const lot = await parkingRepository.create({
       ...dto,
       owner: ownerId as unknown as import('mongoose').Types.ObjectId,
       slug,
-      status: 'pending',
+      status: 'pending',     // Operational: pending admin review
+      verificationStatus: 'DRAFT', // Verification: starts as DRAFT
       location: { type: 'Point', coordinates: dto.location!.coordinates },
     });
+
+    // Phase 3: Create DRAFT verification record (includes duplicate detection)
+    try {
+      await verificationService.createDraft(lot._id.toString(), ownerId, verificationType);
+    } catch (err) {
+      logger.error({ err, lotId: lot._id }, 'Failed to create verification draft — non-fatal');
+    }
+
+    return lot;
   }
 
   async getLotById(id: string): Promise<IParkingLot> {
@@ -40,18 +54,14 @@ export class ParkingService {
   ): Promise<PaginatedResult<IParkingLot>> {
     const cacheService = new (require('../../infrastructure/redis/RedisCacheService')).RedisCacheService();
     const cacheKey = `search:${JSON.stringify(filter)}:${JSON.stringify(options)}`;
-    
-    // 1. Check cache
-    const cached = await cacheService.get<PaginatedResult<IParkingLot>>(cacheKey);
+
+    const cached = await cacheService.get(cacheKey) as PaginatedResult<IParkingLot>;
     if (cached) return cached;
 
-    // 2. Fetch from DB
     const { data, total } = await parkingRepository.search(filter, options);
     const result = buildPaginatedResult(data, total, options);
 
-    // 3. Cache for 5 minutes
     await cacheService.set(cacheKey, result, 300);
-
     return result;
   }
 
@@ -74,12 +84,25 @@ export class ParkingService {
     if (!deleted) throw new NotFoundError('ParkingLot', id);
   }
 
+  /**
+   * Phase 3 guard: Only allow setting status to 'active' if verificationStatus === VERIFIED.
+   * Admin must use the verification approval workflow to activate a lot.
+   */
   async updateStatus(
     id: string,
     status: 'active' | 'rejected' | 'suspended' | 'inactive',
     adminId: string,
     rejectionReason?: string,
   ): Promise<IParkingLot> {
+    const lot = await parkingRepository.findById(id);
+    if (!lot) throw new NotFoundError('ParkingLot', id);
+
+    if (status === 'active' && lot.verificationStatus !== 'VERIFIED') {
+      throw new ConflictError(
+        `Cannot activate a parking lot that is not verified (current verificationStatus: ${lot.verificationStatus}). Use the verification approval workflow.`,
+      );
+    }
+
     const updated = await parkingRepository.updateStatus(id, status, adminId, rejectionReason);
     if (!updated) throw new NotFoundError('ParkingLot', id);
     return updated;
@@ -91,9 +114,10 @@ export class ParkingService {
   }
 
   async toggleFavourite(userId: string, lotId: string): Promise<{ added: boolean }> {
-    await this.getLotById(lotId); // Validates lot exists
+    await this.getLotById(lotId);
     return userRepository.toggleFavourite(userId, lotId);
   }
 }
 
 export const parkingService = new ParkingService();
+

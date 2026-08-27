@@ -1,22 +1,122 @@
-﻿version: '3.8'
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ParkIQ AI — Docker Compose
+#  Services: parkiq-client | parkiq-server | parkiq-mongodb | parkiq-redis
+# ═══════════════════════════════════════════════════════════════════════════════
 
 services:
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
 
+  # ─── MongoDB ────────────────────────────────────────────────────────────────
   mongodb:
     image: mongo:6
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+    container_name: parkiq-mongodb
     restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: parkiq_dev
+    ports:
+      - "27018:27017"   # 27018 on host to avoid clash with local mongod
+    volumes:
+      - parkiq-mongodb-data:/data/db
+    networks:
+      - parkiq-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
+  # ─── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: parkiq-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"     # 6380 on host to avoid clash with local redis
+    volumes:
+      - parkiq-redis-data:/data
+    networks:
+      - parkiq-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─── ParkIQ API Server ──────────────────────────────────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: parkiq-server:latest
+    container_name: parkiq-server
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.docker
+    environment:
+      # Override connection URLs to use Docker service names (internal network)
+      MONGODB_URI: mongodb://mongodb:27017/parkiq_dev
+      REDIS_URI: redis://redis:6379
+      # Client URL for CORS — browser connects to client on port 3000
+      CLIENT_URL: http://localhost:3000
+      APP_URL: http://localhost:5000
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+    volumes:
+      - parkiq-uploads:/app/uploads
+    networks:
+      - parkiq-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+
+  # ─── ParkIQ React Client ────────────────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        # Browser-facing URLs — must use localhost (browser cannot resolve Docker hostnames)
+        VITE_API_URL: http://localhost:5000/api/v1
+        VITE_WS_URL: http://localhost:5000
+    image: parkiq-client:latest
+    container_name: parkiq-client
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    networks:
+      - parkiq-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+# ─── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  parkiq-network:
+    name: parkiq-network
+    driver: bridge
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
 volumes:
-  redis_data:
-  mongodb_data:
+  parkiq-mongodb-data:
+    name: parkiq-mongodb-data
+  parkiq-redis-data:
+    name: parkiq-redis-data
+  parkiq-uploads:
+    name: parkiq-uploads

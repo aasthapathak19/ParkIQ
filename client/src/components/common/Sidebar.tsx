@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home, Search, CalendarCheck, Car, Heart, User,
-  LayoutDashboard, ParkingSquare, SlotMachine, BookOpen, BarChart2,
+  LayoutDashboard, ParkingSquare, Layers, BookOpen, BarChart2,
   Users, ShieldCheck, TrendingUp, X
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';

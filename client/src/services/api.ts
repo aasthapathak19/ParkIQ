@@ -1,8 +1,8 @@
-﻿import api from '@/lib/axios';
+import api from '@/lib/axios';
 import {
   AuthResponse, IUser, IVehicle, IParkingLot, ISlot,
   IBooking, INotification, PaginatedResult, ApiResponse, SearchParams,
-, IParkingVerification, IClaimRequest, IParkingReport, IAuditLog } from '@/types';
+  IParkingVerification, IClaimRequest, IParkingReport, IAuditLog } from '@/types';
 
 // â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const authApi = {

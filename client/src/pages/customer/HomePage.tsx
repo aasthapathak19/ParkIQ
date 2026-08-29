@@ -32,18 +32,11 @@ const HomePage: React.FC = () => {
           background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16,185,129,0.12), transparent), linear-gradient(180deg, #0a0f1e 0%, #111827 100%)',
         }}
       >
-        {/* Grid background */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px',
-          }}
-        />
-
-        {/* Glow orbs */}
-        <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl pointer-events-none" />
+        {/* Elegant modern background */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-[#0a0f1e] to-[#0a0f1e]" />
+        
+        {/* Subtle glowing accents */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/10 rounded-[100%] blur-[120px] pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -57,9 +50,9 @@ const HomePage: React.FC = () => {
             AI-Powered Smart Parking Platform
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            Park Smarter,<br />
-            <span className="gradient-text">Drive Freer</span>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+            Find the perfect spot.<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">In seconds.</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -90,12 +83,16 @@ const HomePage: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
           className="relative z-10 w-full max-w-2xl mt-12"
         >
-          <Link to="/search" className="block">
-            <div className="glass rounded-2xl p-4 flex items-center gap-3 hover:border-emerald-500/30 transition-colors cursor-pointer"
-              style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          <Link to="/search" className="block group">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-3 pl-5 flex items-center gap-4 border border-white/10 shadow-2xl transition-all duration-300 group-hover:border-emerald-500/30 group-hover:bg-white/10">
               <MapPin className="w-5 h-5 text-emerald-400 shrink-0" />
-              <span className="text-neutral-500 text-sm flex-1">Search by location, landmark or parking lot name...</span>
-              <span className="btn-primary text-sm px-4 py-2 pointer-events-none">Search</span>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-white">Where are you going?</p>
+                <p className="text-xs text-neutral-400">Search for cities, airports, or venues...</p>
+              </div>
+              <div className="bg-emerald-500 text-white rounded-xl px-6 py-3 font-medium shadow-lg shadow-emerald-500/25 group-hover:bg-emerald-400 transition-colors">
+                Search
+              </div>
             </div>
           </Link>
         </motion.div>

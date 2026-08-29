@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, MapPin, SlidersHorizontal, Star, Car, Clock, IndianRupee, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
@@ -10,9 +10,12 @@ import { Skeleton, Badge, statusVariant, EmptyState } from '@/components/ui/inde
 import { parkingApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import { IParkingLot } from '@/types';
+import { useSocket } from '@/contexts/SocketContext';
 
 const SearchPage: React.FC = () => {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { socket } = useSocket();
   const [search, setSearch] = useState('');
   const [vehicleType, setVehicleType] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -31,7 +34,19 @@ const SearchPage: React.FC = () => {
     queryKey: queryKeys.parkingLots(params),
     queryFn: () => parkingApi.search(params).then((r) => r.data.data),
     placeholderData: (prev) => prev,
+    staleTime: 10000,
   });
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleSlotUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.parkingLots(params) });
+    };
+    socket.on('slot:updated', handleSlotUpdate);
+    return () => {
+      socket.off('slot:updated', handleSlotUpdate);
+    };
+  }, [socket, qc, params]);
 
   const lots = data?.data ?? [];
   const pagination = data?.pagination;
@@ -135,7 +150,8 @@ const SearchPage: React.FC = () => {
           <>
             <div className="flex items-center justify-between">
               <p className="text-sm text-neutral-400">
-                {pagination?.total ?? lots.length} lots found {isFetching && <span className="text-emerald-400">· Refreshing...</span>}
+                {pagination?.total ?? lots.length} lots found 
+                {isFetching && <span className="ml-2 inline-flex items-center gap-1 text-emerald-400"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live</span>}
               </p>
             </div>
 
@@ -160,56 +176,68 @@ const SearchPage: React.FC = () => {
   );
 };
 
-const ParkingLotCard: React.FC<{ lot: IParkingLot; index: number; onClick: () => void }> = ({
-  lot, index, onClick
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.05, duration: 0.3 }}
-    onClick={onClick}
-    className="glass rounded-xl p-5 border border-white/5 card-hover cursor-pointer group"
-  >
-    <div className="flex items-start justify-between mb-3">
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-white text-sm truncate group-hover:text-emerald-400 transition-colors">{lot.name}</h3>
-        <p className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1">
-          <MapPin className="w-3 h-3 shrink-0" />
-          <span className="truncate">{lot.address.city}, {lot.address.state}</span>
-        </p>
+const ParkingLotCard: React.FC<{ lot: IParkingLot; index: number; onClick: () => void }> = ({ lot, index, onClick }) => {
+  const availabilityPercent = Math.min(100, Math.max(0, (lot.capacity.available / lot.capacity.total) * 100));
+  const barColor = availabilityPercent > 50 ? 'bg-emerald-500' : availabilityPercent > 20 ? 'bg-amber-500' : 'bg-red-500';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      onClick={onClick}
+      className="glass rounded-2xl p-5 border border-white/5 card-hover cursor-pointer group flex flex-col h-full"
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0 pr-2">
+          <h3 className="font-semibold text-white text-base truncate group-hover:text-emerald-400 transition-colors">{lot.name}</h3>
+          <p className="text-xs text-neutral-400 mt-1 flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{lot.address.city}, {lot.address.state}</span>
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-lg font-bold text-emerald-400">₹{lot.pricing.baseRate}</p>
+          <p className="text-[10px] text-neutral-500 uppercase font-medium tracking-wider">per {lot.pricing.billingUnit}</p>
+        </div>
       </div>
-      <Badge variant={statusVariant(lot.status)}>{lot.status}</Badge>
-    </div>
 
-    {lot.rating && (
-      <div className="flex items-center gap-1 mb-3">
-        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-        <span className="text-xs text-amber-400 font-medium">{lot.rating.average.toFixed(1)}</span>
-        <span className="text-xs text-neutral-500">({lot.rating.count})</span>
+      <div className="flex items-center gap-3 mb-4">
+        <Badge variant={statusVariant(lot.status)}>{lot.status}</Badge>
+        {lot.rating && (
+          <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+            <span className="text-xs text-amber-400 font-medium">{lot.rating.average.toFixed(1)}</span>
+          </div>
+        )}
       </div>
-    )}
 
-    <div className="flex items-center gap-4 text-xs text-neutral-400 mb-4">
-      <span className="flex items-center gap-1">
-        <Car className="w-3 h-3" />
-        {lot.capacity.available}/{lot.capacity.total} available
-      </span>
-      <span className="flex items-center gap-1">
-        <IndianRupee className="w-3 h-3" />
-        ₹{lot.pricing.baseRate}/{lot.pricing.billingUnit}
-      </span>
-    </div>
+      {/* Availability Bar */}
+      <div className="mt-auto mb-4">
+        <div className="flex justify-between text-xs mb-1.5">
+          <span className="text-neutral-400 flex items-center gap-1.5"><Car className="w-3.5 h-3.5" /> Availability</span>
+          <span className="font-medium text-white">{lot.capacity.available} <span className="text-neutral-500">/ {lot.capacity.total}</span></span>
+        </div>
+        <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+          <div className={`h-full ${barColor} transition-all duration-500`} style={{ width: `${availabilityPercent}%` }} />
+        </div>
+      </div>
 
-    {lot.distance && (
-      <p className="text-xs text-emerald-400 mb-3">📍 {(lot.distance / 1000).toFixed(1)} km away</p>
-    )}
-
-    <div className="flex gap-2">
-      {lot.amenities.slice(0, 3).map((a) => (
-        <span key={a} className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', color: '#9ca3af' }}>{a}</span>
-      ))}
-    </div>
-  </motion.div>
-);
+      <div className="flex items-center justify-between pt-3 border-t border-white/5">
+        <div className="flex gap-1.5 overflow-hidden">
+          {lot.amenities.slice(0, 3).map((a) => (
+            <span key={a} className="text-[10px] px-2 py-1 rounded border border-white/10 bg-white/5 text-neutral-300 capitalize whitespace-nowrap">
+              {a.replace('_', ' ')}
+            </span>
+          ))}
+          {lot.amenities.length > 3 && <span className="text-[10px] px-2 py-1 text-neutral-500">+{lot.amenities.length - 3}</span>}
+        </div>
+        {lot.distance && (
+          <span className="text-xs font-medium text-indigo-400 whitespace-nowrap ml-2">{(lot.distance / 1000).toFixed(1)} km</span>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 export default SearchPage;

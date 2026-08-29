@@ -50,14 +50,19 @@ export const StatCard: React.FC<StatCardProps> = ({
   const changeColors = { up: 'text-emerald-400', down: 'text-red-400', neutral: 'text-neutral-400' };
 
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-5`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-5 relative overflow-hidden group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 hover:shadow-xl`}>
+      {/* Decorative background glow */}
+      <div className={`absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-colors`} />
+      
+      <div className="flex items-center justify-between mb-3 relative z-10">
         <p className="text-sm text-neutral-400 font-medium">{title}</p>
-        <span className={`${iconColors[color]}`}>{icon}</span>
+        <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${iconColors[color]}`}>
+          {icon}
+        </div>
       </div>
-      <p className="text-2xl font-bold text-white mb-1">{value}</p>
+      <p className="text-2xl font-bold text-white mb-1 relative z-10">{value}</p>
       {change && (
-        <p className={`text-xs ${changeColors[changeType]} font-medium`}>{change}</p>
+        <p className={`text-xs ${changeColors[changeType]} font-medium relative z-10`}>{change}</p>
       )}
     </div>
   );
